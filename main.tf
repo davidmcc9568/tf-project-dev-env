@@ -55,7 +55,7 @@ resource "aws_security_group" "dm_sg" {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
-    cidr_blocks      = ["192.168.0.7/32"]
+    cidr_blocks      = ["0.0.0.0/0"]
   }
 
   egress {
@@ -86,4 +86,14 @@ resource "aws_instance" "dev_node" {
   tags = {
     "Name" = "dev-node"
   }
+
+  provisioner "local-exec" {
+    command = templatefile("${var.host_os}-ssh-config.tpl", {
+      hostname = self.public_ip,
+      user = "ubuntu",
+      identityfile = "~/.ssh/dmkey"
+    })
+    interpreter = var.host_os == "windows" ? ["Powershell", "-Command"] : ["bash", "-c"]
+  }
 }
+
